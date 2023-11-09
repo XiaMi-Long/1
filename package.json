@@ -19,6 +19,20 @@
         "title": "reader:add-text"
       }
     ],
+    "keybindings": [
+      {
+        "command": "extension.nextPage",
+        "key": "shift+oem_3",
+        "mac": "shift+oem_3",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "extension.backPage",
+        "key": "alt+oem_7",
+        "mac": "alt+oem_7",
+        "when": "editorTextFocus"
+      }
+    ],
     "viewsContainers": {}
   },
   "scripts": {
