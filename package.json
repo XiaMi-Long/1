@@ -1,8 +1,8 @@
 {
   "name": "reader-text",
-  "displayName": "ReaderBook",
-  "description": "Happy any",
-  "publisher": "reader-book",
+  "displayName": "moyu-read",
+  "description": "摸鱼看小说",
+  "publisher": "wwy",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.84.0"
@@ -10,6 +10,15 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "read",
+    "moyu"
+  ],
+  "icon": "images/moyu.jpg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XiaMi-Long/vscode-reader-book"
+  },
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
@@ -17,6 +26,14 @@
       {
         "command": "readerBook.add-text",
         "title": "reader:add-text"
+      },
+      {
+        "command": "readerBook.show",
+        "title": "reader:show"
+      },
+      {
+        "command": "readerBook.hide",
+        "title": "reader:hide"
       }
     ],
     "keybindings": [
@@ -25,34 +42,46 @@
         "key": "shift+oem_3",
         "mac": "shift+oem_3",
         "when": "editorTextFocus"
-      },
-      {
-        "command": "extension.backPage",
-        "key": "alt+oem_7",
-        "mac": "alt+oem_7",
-        "when": "editorTextFocus"
       }
     ],
-    "viewsContainers": {}
+    "viewsContainers": {},
+    "configuration": {
+      "type": "reader-text",
+      "title": "Reader-Text",
+      "properties": {
+        "reader-text.textSize": {
+          "type": "number",
+          "default": 20,
+          "description": "一行显示的文字数量,数字越大显示越多"
+        }
+      }
+    }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "pnpm run compile && pnpm run lint",
+    "vscode:prepublish": "pnpm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "localwatch": "tsc -watch -p ./"
   },
   "devDependencies": {
-    "@types/vscode": "^1.84.0",
     "@types/mocha": "^10.0.3",
     "@types/node": "18.x",
+    "@types/vscode": "^1.84.0",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
+    "@vscode/test-electron": "^2.3.6",
     "eslint": "^8.52.0",
     "glob": "^10.3.10",
     "mocha": "^10.2.0",
+    "ts-loader": "^9.5.0",
     "typescript": "^5.2.2",
-    "@vscode/test-electron": "^2.3.6"
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
   }
 }

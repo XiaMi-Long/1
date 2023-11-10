@@ -6,12 +6,14 @@ type readerLineType = {
     showText: string | Buffer
     bookData: (string | Buffer)[]
     isReadClose: boolean
+    historys: string[]
 }
 
 const readData: readerLineType = {
     showText: '',
     bookData: [],
     isReadClose: true,
+    historys: [],
 }
 
 export let stream: fs.ReadStream
@@ -30,50 +32,40 @@ export async function createReadStream() {
     }
 
     if (file) {
+        if (stream) {
+            stream.destroy()
+            reset()
+        }
+
+        setText('加载文件中.....')
         stream = fs.createReadStream(file[0].fsPath, { encoding: 'utf8', highWaterMark: 400 })
+
         stream.on('data', function (chunk) {
             stream.pause()
-
             if (readData.bookData.length === 0) {
-                readData.bookData = (chunk as string).trim().replaceAll('\r\n', '').split('')
+                readData.bookData = (chunk as string).trim().replace(/\s+/g, '').split('')
                 nextPage()
             }
-
-            // 显示这部分内容给用户
-
-            // 然后，你可以暂停流，等待用户点击“下一页”按钮
-
-            // setTimeout(() => {
-            //     console.log('666666666666666666666666666666666666666666666666666666666666666666666666666666')
-
-            //     stream.resume()
-            //     // stream.pause()
-            // }, 3000)
-
-            // 当用户点击“下一页”按钮时，你可以恢复流
-            // stream.resume();
         })
         readData.isReadClose = false
 
-        // TODO 需要关闭流处理
         stream.on('close', function () {
             readData.isReadClose = true
             vscode.window.showInformationMessage('选取的文件即将到结尾')
-            console.log('stream close')
+            // console.log('stream close')
         })
 
-        // TODO 需要意外处理
         stream.on('error', function () {
-            readData.bookData = []
-            readData.showText = 'R'
-            readData.isReadClose = true
+            reset()
             vscode.window.showErrorMessage('读取文件出现意外错误!')
         })
     }
 }
 
-export const nextPage = function () {
-    readData.showText = readData.bookData.splice(0, 20).join('')
+export function nextPage() {
+    const textSize = Number(vscode.workspace.getConfiguration('reader-text').get('textSize')) || 20
+
+    readData.showText = readData.bookData.splice(0, textSize).join('')
     if (readData.showText.length > 0) {
         setText(readData.showText)
         console.log('本次行数据为:' + readData.showText)
@@ -81,7 +73,7 @@ export const nextPage = function () {
 
     if (readData.showText.length === 0) {
         if (!readData.isReadClose) {
-            console.log('准备读取第二次的数据............')
+            // console.log('准备读取第二次的数据............')
             stream.resume()
         }
 
@@ -89,4 +81,16 @@ export const nextPage = function () {
             vscode.window.showInformationMessage('已经是最后一页')
         }
     }
+}
+
+export function destroyStream() {
+    if (stream) {
+        stream.destroy()
+    }
+}
+
+function reset() {
+    readData.bookData = []
+    readData.showText = 'R'
+    readData.isReadClose = true
 }
