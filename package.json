@@ -14,7 +14,7 @@
     "read",
     "moyu"
   ],
-  "icon": "images/moyu.jpg",
+  "icon": "images/moyu.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/XiaMi-Long/vscode-reader-book"

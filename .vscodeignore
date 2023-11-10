@@ -10,6 +10,6 @@ vsc-extension-quickstart.md
 **/*.ts
 node_modules
 images
-!images/moyu.jpg
+!images/moyu.png
 tsconfig.json
 webpack.config.js
