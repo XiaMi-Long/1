@@ -17,6 +17,7 @@ const readData: readerLineType = {
 }
 
 export let stream: fs.ReadStream
+export const outputChannel = vscode.window.createOutputChannel('moyu-read')
 
 export async function createReadStream() {
     const file = await vscode.window.showOpenDialog({
@@ -33,6 +34,7 @@ export async function createReadStream() {
 
     if (file) {
         if (stream) {
+            stream.off('close', streamCloseCallBack)
             stream.destroy()
             reset()
         }
@@ -49,16 +51,9 @@ export async function createReadStream() {
         })
         readData.isReadClose = false
 
-        stream.on('close', function () {
-            readData.isReadClose = true
-            vscode.window.showInformationMessage('选取的文件即将到结尾')
-            // console.log('stream close')
-        })
+        stream.on('close', streamCloseCallBack)
 
-        stream.on('error', function () {
-            reset()
-            vscode.window.showErrorMessage('读取文件出现意外错误!')
-        })
+        stream.on('error', streamErrorCallBack)
     }
 }
 
@@ -68,11 +63,12 @@ export function nextPage() {
     readData.showText = readData.bookData.splice(0, textSize).join('')
     if (readData.showText.length > 0) {
         setText(readData.showText)
-        console.log('本次行数据为:' + readData.showText)
+        outputChannel.appendLine('本次行数据为:' + readData.showText)
     }
 
     if (readData.showText.length === 0) {
         if (!readData.isReadClose) {
+            outputChannel.appendLine('准备读取第二次的数据............')
             // console.log('准备读取第二次的数据............')
             stream.resume()
         }
@@ -89,8 +85,20 @@ export function destroyStream() {
     }
 }
 
+function streamCloseCallBack() {
+    readData.isReadClose = true
+    vscode.window.showInformationMessage('选取的文件即将到结尾')
+    outputChannel.appendLine('stream close')
+}
+
+function streamErrorCallBack() {
+    reset()
+    vscode.window.showErrorMessage('读取文件出现意外错误!')
+}
+
 function reset() {
     readData.bookData = []
     readData.showText = 'R'
     readData.isReadClose = true
+    outputChannel.appendLine(`数据已清空`)
 }
