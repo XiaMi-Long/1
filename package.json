@@ -3,7 +3,7 @@
   "displayName": "moyu-read",
   "description": "摸鱼看小说",
   "publisher": "wwy",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -26,6 +26,10 @@
       {
         "command": "readerBook.add-text",
         "title": "reader:add-text"
+      },
+      {
+        "command": "readerBook.read",
+        "title": "reader:read"
       },
       {
         "command": "readerBook.show",

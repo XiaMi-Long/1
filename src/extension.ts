@@ -1,14 +1,21 @@
 import fs from 'fs'
 import * as vscode from 'vscode'
-import { createReadStream, nextPage, destroyStream } from './method/stream'
 import { createStatusBarItem, show, hide } from './method/statusBar'
+import { initGlobalState, clearAllLocalState } from './method/globalState'
+import { createReadStream, nextPage, destroyStream } from './method/stream'
+
+export const outputChannel = vscode.window.createOutputChannel('moyu-read')
 
 export function activate(context: vscode.ExtensionContext) {
-    const disposable = vscode.commands.registerCommand('readerBook.add-text', async () => {
-        // 创建活动栏
-        createStatusBarItem()
-        // 创建读写流
-        createReadStream()
+    createStatusBarItem()
+    initGlobalState(context)
+
+    const addFileTetx = vscode.commands.registerCommand('readerBook.add-text', () => {
+        createReadStream('add-commands')
+    })
+
+    const read = vscode.commands.registerCommand('readerBook.read', () => {
+        createReadStream('init')
     })
 
     const showStatusBarItem = vscode.commands.registerCommand('readerBook.show', () => {
@@ -20,14 +27,14 @@ export function activate(context: vscode.ExtensionContext) {
     })
 
     const nextPageDisposable = vscode.commands.registerCommand('extension.nextPage', () => {
-        console.log('nextPage')
         nextPage()
     })
 
-    context.subscriptions.push(disposable, nextPageDisposable, showStatusBarItem, hideStatusBarItem)
+    context.subscriptions.push(addFileTetx, read, nextPageDisposable, showStatusBarItem, hideStatusBarItem)
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {
     destroyStream()
+    clearAllLocalState()
 }

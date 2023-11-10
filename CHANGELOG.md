@@ -1,9 +1,17 @@
-# Change Log
+# Changelog
 
-All notable changes to the "helloworld" extension will be documented in this file.
+## [0.0.1]
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+### Added
 
-## [Unreleased]
+<!-- -   降低了插件对版本的兼容版本号。 -->
 
-- Initial release
+### Fixed
+
+-
+
+## [0.0.1]
+
+### Added
+
+-   初始版本。
