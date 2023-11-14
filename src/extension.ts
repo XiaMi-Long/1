@@ -24,14 +24,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     const hideStatusBarItem = vscode.commands.registerCommand('readerBook.hide', () => {
         hide()
-
-        setTimeout(() => {
-            context.globalState.update('moyu-read-global-state', null)
-            console.log('清除成功')
-            setTimeout(() => {
-                console.log(context.globalState.get('moyu-read-global-state'))
-            }, 1000)
-        }, 2000)
     })
 
     const nextPageDisposable = vscode.commands.registerCommand('extension.nextPage', () => {
