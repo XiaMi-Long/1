@@ -2,7 +2,7 @@ import fs from 'fs'
 import * as vscode from 'vscode'
 import { setText } from './statusBar'
 import { outputChannel } from '../extension'
-import { globalState, updateGlobalState } from './globalState'
+import { globalState, updateGlobalState as update } from './globalState'
 
 type readerLineType = {
     showText: string | Buffer
@@ -11,7 +11,6 @@ type readerLineType = {
     historys: string[]
     filePath: string
     readPosition: number
-    historyBookDataLength: number
 }
 
 export const readData: readerLineType = {
@@ -21,7 +20,6 @@ export const readData: readerLineType = {
     historys: [],
     filePath: '',
     readPosition: 0,
-    historyBookDataLength: 0,
 }
 
 export let stream: fs.ReadStream
@@ -79,17 +77,17 @@ export async function createReadStream(createType: 'init' | 'add-commands') {
         reset('select-file')
     }
 
-    setText('加载文件中.....')
     readData.filePath = filePath
-    stream = fs.createReadStream(filePath, { start: readData.readPosition, encoding: 'utf8', highWaterMark: 400 })
+    stream = fs.createReadStream(filePath, { start: readData.readPosition, highWaterMark: 400 })
 
     stream.on('data', function (chunk) {
         readData.readPosition += chunk.length
+        console.log(chunk.length)
+        console.log(chunk.toString('utf8').length)
 
         stream.pause()
         if (readData.bookData.length === 0) {
-            readData.bookData = (chunk as string).trim().replace(/\s+/g, '').split('')
-            readData.historyBookDataLength = readData.bookData.length
+            readData.bookData = chunk.toString('utf8').replace(/\s+/g, '').split('')
             updateGlobalState()
             nextPage()
         }
@@ -102,9 +100,10 @@ export async function createReadStream(createType: 'init' | 'add-commands') {
 }
 
 export function nextPage() {
-    const textSize = Number(vscode.workspace.getConfiguration('reader-text').get('textSize')) || 20
-
+    // const textSize = Number(vscode.workspace.getConfiguration('reader-text').get('textSize')) || 20
+    const textSize = 30
     readData.showText = readData.bookData.splice(0, textSize).join('')
+
     if (readData.showText.length > 0) {
         setText(readData.showText)
         outputChannel.appendLine('本次行数据为:' + readData.showText)
@@ -125,7 +124,7 @@ export function nextPage() {
 
 export function destroyStream() {
     if (stream) {
-        updateGlobalStart()
+        updateGlobalState()
         stream.destroy()
     }
 }
@@ -141,9 +140,10 @@ function streamErrorCallBack() {
     vscode.window.showErrorMessage('读取文件出现意外错误!')
 }
 
-function updateGlobalStart() {
+function updateGlobalState() {
     globalState.filePath = readData.filePath
-    globalState.startRead = readData.readPosition - readData.bookData.length
+    globalState.startRead = readData.readPosition
+    update()
 }
 
 function reset(resetTpe: 'error' | 'select-file') {
@@ -151,7 +151,6 @@ function reset(resetTpe: 'error' | 'select-file') {
     readData.showText = 'R'
     readData.readPosition = 0
     readData.isReadClose = true
-    readData.historyBookDataLength = 0
 
     if (resetTpe === 'select-file') {
         globalState.startRead = 0
