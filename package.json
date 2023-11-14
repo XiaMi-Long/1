@@ -52,13 +52,7 @@
     "configuration": {
       "type": "reader-text",
       "title": "Reader-Text",
-      "properties": {
-        // "reader-text.textSize": {
-        //   "type": "number",
-        //   "default": 20,
-        //   "description": "一行显示的文字数量,数字越大显示越多(请勿设置过大或者小于0,不建议>60)"
-        // }
-      }
+      "properties": {}
     }
   },
   "scripts": {

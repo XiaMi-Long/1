@@ -1,12 +1,15 @@
 import fs from 'fs'
 import * as vscode from 'vscode'
-import { setText } from './statusBar'
 import { outputChannel } from '../extension'
 import { globalState, updateGlobalState as update } from './globalState'
+import { setText } from './statusBar'
 
 type readerLineType = {
     showText: string | Buffer
-    bookData: (string | Buffer)[]
+    bookData: {
+        byteLength: number
+        utf8Text: string
+    }[]
     isReadClose: boolean
     historys: string[]
     filePath: string
@@ -52,6 +55,8 @@ export async function createReadStream(createType: 'init' | 'add-commands') {
             filePath = path
         }
 
+        readData.readPosition = 0
+
         outputChannel.appendLine(`本次行为是打开弹窗进行文件选择获取路径---获取到的路径为[${filePath}]`)
     }
 
@@ -81,14 +86,11 @@ export async function createReadStream(createType: 'init' | 'add-commands') {
     stream = fs.createReadStream(filePath, { start: readData.readPosition, highWaterMark: 400 })
 
     stream.on('data', function (chunk) {
-        readData.readPosition += chunk.length
         console.log(chunk.length)
         console.log(chunk.toString('utf8').length)
-
         stream.pause()
         if (readData.bookData.length === 0) {
-            readData.bookData = chunk.toString('utf8').replace(/\s+/g, '').split('')
-            updateGlobalState()
+            getLineText(chunk as Buffer)
             nextPage()
         }
     })
@@ -100,24 +102,31 @@ export async function createReadStream(createType: 'init' | 'add-commands') {
 }
 
 export function nextPage() {
-    // const textSize = Number(vscode.workspace.getConfiguration('reader-text').get('textSize')) || 20
-    const textSize = 30
-    readData.showText = readData.bookData.splice(0, textSize).join('')
-
-    if (readData.showText.length > 0) {
-        setText(readData.showText)
-        outputChannel.appendLine('本次行数据为:' + readData.showText)
+    // 如果刚刚开始下一页,就没有数据
+    if (readData.bookData.length === 0) {
+        readData.isReadClose = true
+        outputChannel.appendLine('已经是最后一页')
+        vscode.window.showInformationMessage('已经是最后一页')
+        return
     }
 
-    if (readData.showText.length === 0) {
-        if (!readData.isReadClose) {
-            outputChannel.appendLine('准备读取第二次的数据............')
-            // console.log('准备读取第二次的数据............')
-            stream.resume()
+    const lineData = readData.bookData.shift()
+    console.log(lineData)
+
+    if (lineData) {
+        readData.showText = lineData.utf8Text
+
+        if (readData.showText.length > 0) {
+            setText(readData.showText)
+            readData.readPosition += lineData.byteLength
+            updateGlobalState()
+            outputChannel.appendLine('本次行数据为:' + readData.showText)
         }
 
-        if (readData.isReadClose) {
-            vscode.window.showInformationMessage('已经是最后一页')
+        // 如果shift完之后,数组里面没有数据了
+        if (readData.bookData.length === 0) {
+            outputChannel.appendLine('准备读取下一次的数据...')
+            stream.resume()
         }
     }
 }
@@ -127,6 +136,23 @@ export function destroyStream() {
         updateGlobalState()
         stream.destroy()
     }
+}
+
+function getLineText(chunk: Buffer) {
+    let result: Buffer[] = []
+    for (let i = 0; i < chunk.length; i += 100) {
+        let chunks = Buffer.from(chunk.slice(i, i + 100))
+        result.push(chunks)
+    }
+
+    result.forEach((item) => {
+        readData.bookData.push({
+            byteLength: item.length,
+            utf8Text: item.toString('utf8').replace(/\s+/g, ''),
+        })
+    })
+    console.log(result)
+    console.log(readData.bookData)
 }
 
 function streamCloseCallBack() {
