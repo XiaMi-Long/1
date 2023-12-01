@@ -36,3 +36,6 @@
 
 可以在设置中来更改每一行所展示的文字长度
 ![设置](/images/setting.png)
+
+### 有任何问题交流,可发送到我的邮箱
+woheluoqixi@qq.com
